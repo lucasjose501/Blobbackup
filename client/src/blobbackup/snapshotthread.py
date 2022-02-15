@@ -8,7 +8,6 @@ from blobbackup.api import get_computer
 from blobbackup.util import (
     CREATE_NO_WINDOW,
     is_windows,
-    is_mac,
     get_restic_env,
     get_restic_ls_command,
 )
@@ -38,7 +37,7 @@ class SnapshotThread(QThread):
                 .stdout.decode("utf-8")
                 .split("\n")
             )
-        elif is_mac():
+        else:
             nodes = (
                 subprocess.run(
                     get_restic_ls_command(self.snapshot_id),

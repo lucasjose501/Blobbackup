@@ -7,3 +7,4 @@
 /build
 /.DS_Store
 /Blobbackup.app
+/src/blobbackup/bin/blobbackup.exe

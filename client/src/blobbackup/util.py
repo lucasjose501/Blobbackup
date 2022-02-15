@@ -32,6 +32,10 @@ elif is_mac():
     import keyring.backends.OS_X
 
     set_keyring(keyring.backends.OS_X.Keyring())
+else:
+    import keyring.backends.SecretService
+
+    set_keyring(keyring.backends.SecretService.Keyring())
 
 BASE_APP_URL = "https://app.blobbackup.com"
 BASE_URL = "https://blobbackup.com"
@@ -61,13 +65,7 @@ KEEP_ALIVE_PLIST_DEST_PATH = os.path.join(
     os.path.expanduser("~"), "Library", "LaunchAgents", "com.blobbackup.plist"
 )
 
-if is_windows():
-    RESTIC_PATH = get_asset(os.path.join("bin", "blobbackup-win.exe"))
-elif is_mac():
-    if is_arm():
-        RESTIC_PATH = get_asset(os.path.join("bin", "blobbackup-darwin-arm"))
-    else:
-        RESTIC_PATH = get_asset(os.path.join("bin", "blobbackup-darwin-amd"))
+RESTIC_PATH = get_asset(os.path.join("bin", "blobbackup.exe"))
 
 HOME_PATH = os.path.join(os.path.expanduser("~"), ".bb")
 os.makedirs(HOME_PATH, exist_ok=True)
@@ -181,7 +179,7 @@ def get_restic_env(computer, password):
                 "TEMP": os.environ["TEMP"],
             }
         )
-    elif is_mac():
+    else:
         env.update({"HOME": os.environ["HOME"]})
     return env
 

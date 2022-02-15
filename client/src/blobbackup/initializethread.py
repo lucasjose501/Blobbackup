@@ -19,7 +19,6 @@ from blobbackup.util import (
     KEEP_ALIVE_PLIST_PATH,
     KEEP_ALIVE_PLIST_DEST_PATH,
     is_windows,
-    is_mac,
     save_password_in_keyring,
     get_restic_env,
     get_restic_init_command,
@@ -169,7 +168,7 @@ def initialize_client(email, password):
     if is_windows():
         config["inclusions"]["paths"] = DEFAULT_WIN_INCLUSIONS
         config["exclusions"]["paths"] = DEFAULT_WIN_EXCLUSIONS
-    elif is_mac():
+    else:
         config["inclusions"]["paths"] = DEFAULT_MAC_INCLUSIONS
         config["exclusions"]["paths"] = DEFAULT_MAC_EXCLUSIONS
     save_config()
@@ -196,7 +195,7 @@ def create_restic_repo_or_die(computer, password):
             env=get_restic_env(computer, password),
             creationflags=CREATE_NO_WINDOW,
         )
-    elif is_mac():
+    else:
         ret = subprocess.run(
             get_restic_init_command(),
             env=get_restic_env(computer, password),
@@ -208,7 +207,7 @@ def create_restic_repo_or_die(computer, password):
 def initialize_keep_alive():
     if is_windows():
         initialize_win_keep_alive()
-    elif is_mac():
+    else:
         initialize_mac_keep_alive()
 
 

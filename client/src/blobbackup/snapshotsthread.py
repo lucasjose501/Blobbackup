@@ -6,7 +6,6 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from blobbackup.api import get_computer
 from blobbackup.util import (
     CREATE_NO_WINDOW,
-    is_mac,
     is_windows,
     get_restic_env,
     get_restic_snapshots_command,
@@ -33,7 +32,7 @@ class SnapshotsThread(QThread):
                     creationflags=CREATE_NO_WINDOW,
                 ).stdout
             )
-        elif is_mac():
+        else:
             snapshots = json.loads(
                 subprocess.run(
                     get_restic_snapshots_command(),

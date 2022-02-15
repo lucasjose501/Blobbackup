@@ -1,0 +1,3 @@
+[submodule "client/restic"]
+	path = client/restic
+	url = git@github.com:Blobbackup/restic.git
