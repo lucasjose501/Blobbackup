@@ -71,6 +71,7 @@ Route::middleware(['auth.basic', 'verified', 'active'])->group(function () {
             $computer->b2_application_key = $createKeyJson['applicationKey'];
             $computer->user_id = auth()->user()->id;
             $computer->save();
+            $computer->b2_bucket_name = env('B2_BUCKET_NAME');
             return $computer;
         });
     
@@ -81,7 +82,7 @@ Route::middleware(['auth.basic', 'verified', 'active'])->group(function () {
                 'last_backed_up_at' => ['numeric'],
                 'last_backed_up_num_files' => ['integer'],
                 'last_backed_up_size' => ['integer'],
-                'client_version' => ['string', 'max:5']
+                'client_version' => ['string', 'max:8']
             ])->fails())
                 return $response->setStatusCode(400);
             if ($computer->user_id != auth()->user()->id)
@@ -93,12 +94,14 @@ Route::middleware(['auth.basic', 'verified', 'active'])->group(function () {
             if ($request->last_backed_up_size) $computer->last_backed_up_size = $request->last_backed_up_size;
             if ($request->client_version) $computer->client_version = $request->client_version;
             $computer->save();
+            $computer->b2_bucket_name = env('B2_BUCKET_NAME');
             return $computer;
         });
     
         Route::get('/computers/{computer}', function (Request $request, Response $response, Computer $computer) {
             if ($computer->user_id != auth()->user()->id)
                 return $response->setStatusCode(400);
+            $computer->b2_bucket_name = env('B2_BUCKET_NAME');
             return $computer;
         });
     

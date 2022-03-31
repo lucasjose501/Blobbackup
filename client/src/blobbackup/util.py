@@ -45,7 +45,10 @@ elif is_mac():
 
 BASE_APP_URL = "https://app.blobbackup.com"
 BASE_URL = "https://blobbackup.com"
-B2_BUCKET = "blobbackup01"
+PRIVACY_URL = BASE_URL + "/privacy"
+SUPPORT_URL = BASE_URL + "/support"
+TERMS_URL = BASE_URL + "/terms"
+GUIDE_URL = BASE_URL + "/support/how-to-grant-full-disk-access-on-mac"
 
 HEARTBEAT_SECONDS = 1
 BACKUP_STUCK_HOURS = 8
@@ -104,13 +107,9 @@ EXCLUDIONS_FILE_PATH = os.path.join(HOME_PATH, "exclusions.txt")
 
 MAC_UPDATER_PATH = get_asset(os.path.join("misc", "blobbackup-updater.sh"))
 MAC_UPDATER_DEST_PATH = os.path.join(HOME_PATH, "blobbackup-updater.sh")
-shutil.copyfile(MAC_UPDATER_PATH, MAC_UPDATER_DEST_PATH)
-if is_mac():
-    make_executable(MAC_UPDATER_DEST_PATH)
 
 WIN_UPDATER_PATH = get_asset(os.path.join("misc", "blobbackup-updater.exe"))
 WIN_UPDATER_DEST_PATH = os.path.join(HOME_PATH, "blobbackup-updater.exe")
-shutil.copyfile(WIN_UPDATER_PATH, WIN_UPDATER_DEST_PATH)
 
 VERSION_FILE_PATH = os.path.join(HOME_PATH, "version.txt")
 with open(VERSION_FILE_PATH, "w") as f:
@@ -206,7 +205,7 @@ def get_restic_restore_command(snapshot_id, target, paths):
 def get_restic_env(computer, password):
     env = {
         "RESTIC_PASSWORD": password,
-        "RESTIC_REPOSITORY": f"b2:{B2_BUCKET}:{computer['uuid']}",
+        "RESTIC_REPOSITORY": f"b2:{computer['b2_bucket_name']}:{computer['uuid']}",
         "B2_ACCOUNT_KEY": computer["b2_application_key"],
         "B2_ACCOUNT_ID": computer["b2_key_id"],
         "RESTIC_CACHE_DIR": CACHE_PATH,
@@ -261,18 +260,7 @@ def load_keep_alive_script():
 
 
 def load_keep_alive_script_win():
-    add_windows_task(
-        "com.blobbackup.login",
-        [
-            "schtasks",
-            "/create",
-            "/tr",
-            "C:/Program Files (x86)/blobbackup/blobbackup-win32.exe --open-minimized",
-            "/sc",
-            "ONLOGON",
-            "/f",
-        ],
-    )
+    remove_windows_task("com.blobbackup.login")
     add_windows_task(
         "com.blobbackup",
         [
@@ -282,12 +270,15 @@ def load_keep_alive_script_win():
             "C:/Program Files (x86)/blobbackup/blobbackup-win32.exe --open-minimized",
             "/sc",
             "HOURLY",
+            "/rl",
+            "HIGHEST",
             "/f",
         ],
     )
 
 
 def load_updater_script_win():
+    shutil.copyfile(WIN_UPDATER_PATH, WIN_UPDATER_DEST_PATH)
     add_windows_task(
         "com.blobbackup.updater",
         [
@@ -343,6 +334,13 @@ def add_windows_task(name, command):
         )
 
 
+def remove_windows_task(name):
+    subprocess.run(
+        ["schtasks", "/delete", "/tn", name, "/f"],
+        creationflags=CREATE_NO_WINDOW,
+    )
+
+
 def load_keep_alive_script_mac():
     shutil.copyfile(KEEP_ALIVE_PLIST_PATH, KEEP_ALIVE_PLIST_DEST_PATH)
     subprocess.run(["launchctl", "unload", KEEP_ALIVE_PLIST_DEST_PATH])
@@ -350,6 +348,8 @@ def load_keep_alive_script_mac():
 
 
 def load_updater_script_mac():
+    shutil.copyfile(MAC_UPDATER_PATH, MAC_UPDATER_DEST_PATH)
+    make_executable(MAC_UPDATER_DEST_PATH)
     shutil.copyfile(UPDATER_PLIST_PATH, UPDATER_PLIST_DEST_PATH)
     subprocess.run(["launchctl", "unload", UPDATER_PLIST_DEST_PATH])
     subprocess.run(["launchctl", "load", UPDATER_PLIST_DEST_PATH])
